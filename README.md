@@ -22,3 +22,6 @@ npm run dev
 ```
 
 Open in your browser and click on the canvas: left-click places floor, right-click erases it; walls and autotiling are recalculated automatically.
+
+
+![screenshot](autotile.jpg)
