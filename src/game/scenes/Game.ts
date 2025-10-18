@@ -45,6 +45,16 @@ export class Game extends Scene {
   }
 
   create() {
+    this.add.text(20, 20, 'ЛКМ - ДОБАВИТЬ ТАЙЛ', {
+      fontSize: 32,
+      color: '#fff'
+    }).setDepth(1000);
+
+    this.add.text(20, 62, 'ПКМ - УДАЛИТЬ ТАЙЛ', {
+      fontSize: 32,
+      color: '#fff'
+    }).setDepth(1000);
+
     this.cameras.main.setZoom(1);
 
     this.map = this.make.tilemap({ tileWidth: this.cfg.subTile, tileHeight: this.cfg.subTile, width: this.w * 2, height: this.h * 2 });
