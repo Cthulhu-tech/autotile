@@ -1,127 +1,35 @@
-AutoTile Click Canvas (Phaser 3)
+# AutoTile Click Canvas — как это работает (минимально)
 
-Минимальный «пустой холст» на Phaser 3 с автотайлингом 48-квадрантов: ЛКМ — рисуем пол, ПКМ — стираем. Стены строятся автоматически по внешнему периметру (8-связность). Подходит как изолированный playground для отладки тайлсетов и правил автотайлинга.
+* Логическая сетка `W×H`. Одна логическая клетка рендерится как **2×2** сабтайла.
+* При **ЛКМ** клетка помечается как пол, при **ПКМ** — очищается.
+* После каждого клика:
 
-Демо-возможности
+  1. Строится бинарная маска пола.
+  2. По внешнему периметру (8-связность) этой маски вычисляется маска стен.
+  3. Для каждой логической клетки берутся её соседи и через `AutoTileMath.quad(...)` выбираются 4 индекса (TL, TR, BL, BR) из набора **48** вариантов.
+  4. На слой **Floor** кладутся 2×2 субтайла пола, на слой **Solid** — 2×2 субтайла стен.
+* Для стен в свойства тайла ставится `ge_colide = true` (можно читать в своём коллайдере).
+* Слои перерисовываются целиком, чтобы не оставалось артефактов (для демо это проще и надёжнее).
 
-Ручная отрисовка пола по клику (grid на логических клетках, каждая рендерится как 2×2 сабтайла).
+## Управление
 
-Автотайлинг пола/стен по набору индексов INDEX_ARRS (48 вариантов).
+* **ЛКМ** — поставить пол.
+* **ПКМ** — стереть пол.
 
-Очистка/перерисовка слоёв без артефактов.
+## Что нужно
 
-Простые свойства тайлов (флаг коллизии для стен).
+* Два спрайтлиста (spritesheet) с одинаковым размером сабтайла `subTile×subTile`:
 
-Стек
+  * `ground` — 48-квадрантовый набор пола.
+  * `wall` — 48-квадрантовый набор стен.
+* Константы `INDEX_ARRS` (карта для 48-автотайла) и `TILECOUNT_PER_SET = 48`.
+* Функция `AutoTileMath.quad(...)`, возвращающая 4 индекса (1..48) по маске соседей.
 
-Phaser 3.90+
+## Быстрый старт (с Vite)
 
-TypeScript
-
-Любой бандлер (Vite/Webpack/Parcel). Ниже пример для Vite.
-
-Структура
-src/
-  scenes/
-    AutoTileClickScene.ts   # сцена из примера
-  constants/
-    map.ts                  # INDEX_ARRS, TILECOUNT_PER_SET
-  utils/
-    autoTileMath.ts         # AutoTileMath.quad(...)
-assets/
-  tiles/
-    ground.png              # 48-квадрантовый тайлсет пола
-    wall.png                # 48-квадрантовый тайлсет стен
-index.html
-main.ts
-
-
-Импорт в сцене ожидает:
-
-INDEX_ARRS и TILECOUNT_PER_SET из constants/map
-
-AutoTileMath из utils/autoTileMath
-
-Если у вас уже есть эти файлы — просто положите сцену рядом.
-Если нет — добавьте свои реализации. Для 48-квадрантов TILECOUNT_PER_SET обычно 48.
-
-Установка
-# с Vite + TS
-npm create vite@latest autotile-canvas -- --template vanilla-ts
-cd autotile-canvas
-npm i phaser
-# скопируйте файлы из раздела "Структура" в src/ и assets/
+```bash
+npm i
 npm run dev
+```
 
-Загрузка ассетов
-
-В вашем main.ts или сцене-прелоадере загрузите ровно двумя ключами:
-
-preload() {
-  this.load.spritesheet('ground', 'assets/tiles/ground.png', {
-    frameWidth: SUB_TILE,   // размер сабтайла, напр. 16
-    frameHeight: SUB_TILE
-  });
-  this.load.spritesheet('wall', 'assets/tiles/wall.png', {
-    frameWidth: SUB_TILE,
-    frameHeight: SUB_TILE
-  });
-}
-
-
-Один логический тайл рендерится 2×2 сабтайлами, поэтому размер «клетки» = SUB_TILE * 2.
-
-Инициализация сцены
-import Phaser from 'phaser';
-import { AutoTileClickScene } from './scenes/AutoTileClickScene';
-
-new Phaser.Game({
-  type: Phaser.WEBGL,
-  parent: 'game',
-  backgroundColor: '#111',
-  scale: { width: 1024, height: 768, mode: Phaser.Scale.FIT },
-  scene: [
-    // при необходимости: ваш Preloader,
-    new AutoTileClickScene('AutoTileClickScene', {
-      subTile: 16,          // размер сабтайла в пикселях
-      indexArrs: INDEX_ARRS,
-      floor: 'ground',      // ключ загруженного тайлсета пола
-      floorWall: 'wall',    // ключ загруженного тайлсета стен
-    }, 64, 48)              // логический размер сетки (W×H)
-  ],
-});
-
-Управление
-
-ЛКМ — поставить пол в клетке.
-
-ПКМ — стереть пол в клетке.
-
-Стены строятся автоматически по периметру «маски пола».
-
-Требования к тайлсетам
-
-Формат 48-квадрантов (Wang-like), согласованный с AutoTileMath.
-
-Каждый субтайл одинакового размера subTile×subTile (например, 16×16).
-
-Спрайтлисты (или spritesheet) должны идти ровно в том порядке, для которого рассчитаны индексы INDEX_ARRS.
-
-Настройка коллизии
-
-В примере для стен ставится tile.properties['ge_colide'] = true.
-Если используете физику/путь-файндинг, настройте обработку этого свойства в своей системе коллизий.
-
-Известные оговорки
-
-Полная перерисовка слоёв после клика — самый простой и надёжный путь для playground. Для больших карт оптимизируйте (перерисовывайте окрестность курсора).
-
-Если цвета/паттерны «слипаются» между соседними областями — используйте разные тайлсеты/плитки или разнесите регионы (в этом демо один тайлсет пола на весь холст).
-
-Лицензия
-
-MIT
-
-EN (short)
-
-Minimal Phaser 3 playground with 48-tile autotiling. LMB paints floor, RMB erases; walls are auto-computed on the outer perimeter. Bring your own INDEX_ARRS, TILECOUNT_PER_SET, and AutoTileMath. Two spritesheets required: ground and wall (each a 48-variant autotile set). Use Vite/Webpack, preload textures, then add AutoTileClickScene.
+Откройте в браузере — кликайте по холсту: пол ставится/стирается, стены и автотайлинг пересчитываются автоматически.
