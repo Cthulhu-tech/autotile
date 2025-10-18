@@ -1,6 +1,8 @@
 
 ![screenshot](autotile.jpg)
 
+CANVAS!
+
 # RU — AutoTile Click Canvas
 
 **Логическая сетка** `W×H`. Одна логическая клетка рендерится как **2×2** сабтайла.
