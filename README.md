@@ -1,35 +1,24 @@
 # AutoTile Click Canvas
 
-* Логическая сетка `W×H`. Одна логическая клетка рендерится как **2×2** сабтайла.
-* При **ЛКМ** клетка помечается как пол, при **ПКМ** — очищается.
-* После каждого клика:
+* Logical grid `W×H`. Each logical cell renders as **2×2** subtiles.
+* **Left-click** marks a cell as floor; **right-click** clears it.
+* After each click:
 
-  1. Строится бинарная маска пола.
-  2. По внешнему периметру (8-связность) этой маски вычисляется маска стен.
-  3. Для каждой логической клетки берутся её соседи и через `AutoTileMath.quad(...)` выбираются 4 индекса (TL, TR, BL, BR) из набора **48** вариантов.
-  4. На слой **Floor** кладутся 2×2 субтайла пола, на слой **Solid** — 2×2 субтайла стен.
-* Для стен в свойства тайла ставится `ge_colide = true` (можно читать в своём коллайдере).
-* Слои перерисовываются целиком, чтобы не оставалось артефактов (для демо это проще и надёжнее).
+  1. Build a binary floor mask.
+  2. From the outer perimeter of that mask (8-connectivity), compute a wall mask.
+  3. For every logical cell, look up its neighbors and use `AutoTileMath.quad(...)` to pick 4 indices (TL, TR, BL, BR) from the **48**-tile set.
+  4. Place the 2×2 floor subtiles on the **Floor** layer, and the 2×2 wall subtiles on the **Solid** layer.
 
-## Управление
+## Controls
 
-* **ЛКМ** — поставить пол.
-* **ПКМ** — стереть пол.
+* **Left-click** — place floor.
+* **Right-click** — erase floor.
 
-## Что нужно
-
-* Два спрайтлиста (spritesheet) с одинаковым размером сабтайла `subTile×subTile`:
-
-  * `ground` — 48-квадрантовый набор пола.
-  * `wall` — 48-квадрантовый набор стен.
-* Константы `INDEX_ARRS` (карта для 48-автотайла) и `TILECOUNT_PER_SET = 48`.
-* Функция `AutoTileMath.quad(...)`, возвращающая 4 индекса (1..48) по маске соседей.
-
-## Быстрый старт (с Vite)
+## Quick Start (with Vite)
 
 ```bash
 npm i
 npm run dev
 ```
 
-Откройте в браузере — кликайте по холсту: пол ставится/стирается, стены и автотайлинг пересчитываются автоматически.
+Open in your browser and click on the canvas: left-click places floor, right-click erases it; walls and autotiling are recalculated automatically.
